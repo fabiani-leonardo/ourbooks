@@ -1,5 +1,8 @@
 package it.uniroma3.siw.model;
 
+import java.util.List;
+import java.util.Set;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
@@ -16,8 +19,11 @@ public class Book {
 	@Max(2050)
 	private Integer publicationYear;
 	
-	@NotNull											//viene richiesto che l'url di un'immagine sia inserito
-	private String urlImage;
+	@ElementCollection
+	private List<String> imagePaths; // Percorsi relativi a file salvati
+
+	@ManyToMany
+	private Set<Author> authors;
 
 	public Long getId() {
 		return id;
@@ -43,12 +49,22 @@ public class Book {
 		this.publicationYear = publicationYear;
 	}
 
-	public String getUrlImage() {
-		return urlImage;
+	public List<String> getImagePaths() {
+		return imagePaths;
 	}
 
-	public void setUrlImage(String urlImage) {
-		this.urlImage = urlImage;
+	public void setImagePaths(List<String> imagePaths) {
+		this.imagePaths = imagePaths;
 	}
+
+	public Set<Author> getAuthors() {
+		return authors;
+	}
+
+	public void setAuthors(Set<Author> authors) {
+		this.authors = authors;
+	}
+	
+
 	
 }

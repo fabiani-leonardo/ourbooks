@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>
+		Ristorante-LogInForm
+	</title>
+	<!--<link rel="stylesheet" href="/css/" />-->
+</head>
+
+<body>
+	<!-- All'inizio del body inserisco sempre una sezione come header basata sullo stato attuale dell'utente -->
+	<header>
+		<!-- Se l'utente è autenticato -->
+		<div th:if="${userDetails}">							<!-- dal controller sto passando questa variabile offerta da Spring Security che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+		    <span th:text="${userDetails.username}"></span>		<!-- stampiamo lo username dell'utente autenticato' -->
+		    <a href="/logout">Logout</a>						<!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+		</div>
+
+		    <!-- Se l'utente NON è autenticato -->
+		<div th:if="${userDetails == null}">					<!-- Se l'utente non è autenticat questo oggetto è null come detto sopra' -->
+			<a href="/login">Login</a>							<!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+		    <a href="/register">Register</a>					<!-- o registrarsi -->
+		</div>
+	</header>
+	
+	
+	<h1>Login</h1>										<!-- Titolo del form -->
+	<form th:action="@{/login}" method="POST">			<!-- inizializza una richiesta di tipo HTTP di tipo POST da inviare a /login-->
+		<!-- ATTENZIONE, la richiesta soprastante non va mappata poichè viene intercettata automaticamete da Spring Security che fa i controllida solo-->
+		<div>
+			<span>Username:</span>
+			<span><input name="username" type="text" required /></span>
+		</div>
+		<div>
+			<span>Password:</span>
+			<span><input name="password" type="password" required /></span>
+		</div>
+		<div>
+			<span th:if="${param.error != null}">Username o password errati</span>	<!--controlla se all'ultimo invio i dati inseriti erano sbagliati-->
+		</div>
+		<div>
+			<span><button type="submit">Login</button></span>	<!--Il type="submit" fa sì che cliccando il bottone venga inviato il modulo al server.-->	
+		</div>
+	</form>
+</body>
+
+</html>

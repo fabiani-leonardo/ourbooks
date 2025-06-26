@@ -33,8 +33,6 @@ public class Author {
 	@ManyToMany(mappedBy = "authors")
 	private Set<Book> books;
 
-	
-	
 	public Long getId() {
 		return id;
 	}
@@ -43,19 +41,19 @@ public class Author {
 		this.id = id;
 	}
 
-	public String getName() {
+	public String getFirstName() {
 		return firstName;
 	}
 
-	public void setName(String name) {
+	public void setFirstName(String name) {
 		this.firstName = name;
 	}
 
-	public String getSurname() {
+	public String getLastName() {
 		return lastName;
 	}
 
-	public void setSurname(String surname) {
+	public void setLastName(String surname) {
 		this.lastName = surname;
 	}
 

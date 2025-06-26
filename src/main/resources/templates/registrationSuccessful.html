@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>
+		Ristorante-RegistrationSuccessful
+	</title>
+	<!--<link rel="stylesheet" href="/css/" />-->
+</head>
+
+<body>
+	<!-- All'inizio del body inserisco sempre una sezione come header basata sullo stato attuale dell'utente -->
+	<header>
+		<!-- Se l'utente è autenticato -->
+		<div th:if="${userDetails}">							<!-- dal controller sto passando questa variabile offerta da Spring Security che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+		    <span th:text="${userDetails.username}"></span>		<!-- stampiamo lo username dell'utente autenticato' -->
+		    <a href="/logout">Logout</a>						<!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+		</div>
+
+	    <!-- Se l'utente NON è autenticato -->
+		<div th:if="${userDetails == null}">					<!-- Se l'utente non è autenticat questo oggetto è null come detto sopra' -->
+			<a href="/login">Login</a>							<!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+		    <a href="/register">Register</a>					<!-- o registrarsi -->
+		</div>
+	</header>
+			
+	<!--immagine-->
+	<!--<div>
+		<a href="/"><img src="/images/logo-siw.png" width="50%"/></a>
+	</div>-->
+	<h1>Congratulazioni ti sei registrato!</h1>
+	<div>
+		<span>Nome: </span>
+		<span th:text="${user.name}"></span>
+	</div>
+	<div>
+		<span>Cognome: </span>
+		<span th:text="${user.surname}"></span>
+	</div>
+	<div>
+		<span>Email: </span>
+		<span th:text="${user.email}"></span>
+	</div>
+</body>
+</html>

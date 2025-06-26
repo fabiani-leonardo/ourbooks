@@ -25,6 +25,8 @@ public class Book {
 	@ManyToMany
 	private Set<Author> authors;
 	
+	@OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
+	private List<Review> reviews;
 	
 	
 	
@@ -65,6 +67,14 @@ public class Book {
 
 	public void setPublicationYear(Integer publicationYear) {
 		this.publicationYear = publicationYear;
+	}
+
+	public List<Review> getReviews() {
+		return reviews;
+	}
+
+	public void setReviews(List<Review> reviews) {
+		this.reviews = reviews;
 	}
 
 	

@@ -17,10 +17,7 @@ public class Author {
 	private Long id;
 	
 	@NotBlank
-	private String firstName;
-	
-	@NotBlank
-	private String lastName;
+	private String fullName;
 	
 	private LocalDate birthDate;
 	
@@ -42,19 +39,11 @@ public class Author {
 	}
 
 	public String getFirstName() {
-		return firstName;
+		return fullName;
 	}
 
 	public void setFirstName(String name) {
-		this.firstName = name;
-	}
-
-	public String getLastName() {
-		return lastName;
-	}
-
-	public void setLastName(String surname) {
-		this.lastName = surname;
+		this.fullName = name;
 	}
 
 	public LocalDate getBirthDate() {

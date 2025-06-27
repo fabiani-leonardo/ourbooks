@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>OurBooks – Cerca Libri</title>
+  <link rel="stylesheet" href="/css/home.css"/>
+</head>
+<body>
+  <header>
+    <div th:if="${userDetails}">
+      <span th:text="${userDetails.username}"></span>
+      <a href="/logout">Logout</a>
+    </div>
+    <div th:if="${userDetails == null}">
+      <a href="/login">Login</a>
+      <a href="/register">Register</a>
+    </div>
+  </header>
+
+  <h1>OurBooks</h1>
+  <h2>Cerca Libri</h2>
+
+  <!-- Form di ricerca -->
+  <form th:action="@{/books}" method="get">
+    <input type="text" name="title" placeholder="Titolo contiene..."
+           th:value="${title}" />
+    <input type="number" name="year" placeholder="Anno pubblicazione"
+           th:value="${year}" />
+    <button type="submit">Cerca</button>
+    <a th:href="@{/books}"><button type="button">Azzerra filtri</button></a>
+  </form>
+
+  <!-- Risultati (mostra solo se esistono) -->
+  <div th:if="${books}">
+    <h3 th:text="'Risultati trovati: ' + ${books.size()}"></h3>
+    <ul>
+      <li th:each="book : ${books}">
+        <a th:href="@{'/books/' + ${book.id}}">
+          <strong th:text="${book.title}">Titolo</strong>
+        </a>
+        <span> – </span>
+        <span th:text="${book.publicationYear}">Anno</span>
+      </li>
+    </ul>
+  </div>
+</body>
+</html>

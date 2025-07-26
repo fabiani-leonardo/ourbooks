@@ -9,7 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import it.uniroma3.siw.model.Book;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+public interface BookRepository extends CrudRepository<Book, Long> {
     // Aggiungeremo metodi personalizzati quando necessario
 	
 	List<Book> findByTitleContainingIgnoreCase(String title);
@@ -28,4 +28,15 @@ public interface BookRepository extends JpaRepository<Book, Long> {
         @Param("title") String title,
         @Param("year")  Integer year
     );
+
+	@Query("SELECT DISTINCT b FROM Book b JOIN b.authors a " +
+       "WHERE (:title IS NULL OR LOWER(b.title) LIKE LOWER(CONCAT('%', :title, '%'))) " +
+       "AND (:year IS NULL OR b.publicationYear = :year) " +
+       "AND (:author IS NULL OR LOWER(a.fullName) LIKE LOWER(CONCAT('%', :author, '%')))")
+	List<Book> findByFilters(@Param("title") String title,
+                         @Param("year") Integer year,
+                         @Param("author") String author);
+
+	boolean existsByTitleAndPublicationYear(String title, Integer publicationYear);
+
 }

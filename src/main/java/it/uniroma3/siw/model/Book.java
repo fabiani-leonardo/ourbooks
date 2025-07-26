@@ -8,74 +8,74 @@ import jakarta.validation.constraints.*;
 
 @Entity
 public class Book {
+	@Id													//permette di definire questo attributo come chiave
+	@GeneratedValue(strategy = GenerationType.AUTO)		//permette di generare automaticamente l'id dell'oggetto
+	private Long id;
+	
+	@NotBlank											//permette di inserire una costrizione sul tipo di valore inserito in questo attributo, in questo caso si richiede che l'attributo non sia vuoto o con caratteri spazio
+	private String title;
+	
+	@Min(-3000)											//permettono di inserire un massimo ed un minimo valore a questo intero
+	@Max(2050)
+	private Integer publicationYear;
+	
+	private String imagePath; // Percorsi relativi a file salvati
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+	@ManyToMany
+	private Set<Author> authors;
+	
+	@OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
+	private List<Review> reviews;
+	
+	
+	
 
-    @NotBlank
-    private String title;
+	public String getImagePath() {
+		return imagePath;
+	}
 
-    @Min(-3000)
-    @Max(2050)
-    private Integer publicationYear;
+	public void setImagePath(String imagePath) {
+		this.imagePath = imagePath;
+	}
 
-    @ElementCollection
-    private List<String> imagePaths; // Percorsi relativi a file salvati
+	public Set<Author> getAuthors() {
+		return authors;
+	}
 
-    @ManyToMany
-    private Set<Author> authors;
+	public void setAuthors(Set<Author> authors) {
+		this.authors = authors;
+	}
+	public Long getId() {
+		return id;
+	}
 
-    @OneToMany(mappedBy = "book", cascade = CascadeType.REMOVE)
-    private List<Review> reviews;
+	public void setId(Long id) {
+		this.id = id;
+	}
 
-    // Getters and Setters
+	public String getTitle() {
+		return title;
+	}
 
-    public Long getId() {
-        return id;
-    }
+	public void setTitle(String title) {
+		this.title = title;
+	}
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+	public Integer getPublicationYear() {
+		return publicationYear;
+	}
 
-    public String getTitle() {
-        return title;
-    }
+	public void setPublicationYear(Integer publicationYear) {
+		this.publicationYear = publicationYear;
+	}
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+	public List<Review> getReviews() {
+		return reviews;
+	}
 
-    public Integer getPublicationYear() {
-        return publicationYear;
-    }
+	public void setReviews(List<Review> reviews) {
+		this.reviews = reviews;
+	}
 
-    public void setPublicationYear(Integer publicationYear) {
-        this.publicationYear = publicationYear;
-    }
-
-    public List<String> getImagePaths() {
-        return imagePaths;
-    }
-
-    public void setImagePaths(List<String> imagePaths) {
-        this.imagePaths = imagePaths;
-    }
-
-    public Set<Author> getAuthors() {
-        return authors;
-    }
-
-    public void setAuthors(Set<Author> authors) {
-        this.authors = authors;
-    }
-
-    public List<Review> getReviews() {
-        return reviews;
-    }
-
-    public void setReviews(List<Review> reviews) {
-        this.reviews = reviews;
-    }
+	
 }

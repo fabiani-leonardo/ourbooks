@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Modifica Autori Libro</title>
+  <link rel="stylesheet" href="/css/home.css"/>
+  <script>
+    function moveOption(sourceId, targetId) {
+      const src = document.getElementById(sourceId);
+      const tgt = document.getElementById(targetId);
+      const selected = Array.from(src.selectedOptions);
+      selected.forEach(opt => {
+        // rimuovi dall'origine
+        src.removeChild(opt);
+        // aggiungi al target
+        tgt.appendChild(opt);
+      });
+    }
+
+    function selectAllAndSubmit() {
+      const tgt = document.getElementById('bookAuthors');
+      Array.from(tgt.options).forEach(o => o.selected = true);
+      document.getElementById('authorsForm').submit();
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <a th:href="@{/books/admin}"><h1>Gestione Libri</h1></a>
+  </header>
+
+  <h2 th:text="'Autori per: ' + ${book.title}"></h2>
+
+  <form id="authorsForm"
+        th:action="@{'/books/' + ${book.id} + '/authors-update'}"
+        method="post">
+    <div>
+      <label>Autori del libro</label><br/>
+      <select id="bookAuthors" name="authors" multiple size="10">
+        <option th:each="a : ${book.authors}"
+                th:value="${a.id}"
+                th:text="${a.fullName}"></option>
+      </select>
+      <button type="button" onclick="moveOption('bookAuthors','allAuthors')">← Rimuovi</button>
+    </div>
+
+    <div>
+      <label>Tutti gli autori</label><br/>
+      <select id="allAuthors" multiple size="10">
+        <option th:each="a : ${allAuthors}"
+                th:value="${a.id}"
+                th:text="${a.fullName}"></option>
+      </select>
+      <button type="button" onclick="moveOption('allAuthors','bookAuthors')">Aggiungi →</button>
+    </div>
+
+    <div>
+      <button type="button" onclick="selectAllAndSubmit()">Salva Autori</button>
+      <a th:href="@{/books/admin}"><button type="button">Annulla</button></a>
+    </div>
+  </form>
+</body>
+</html>

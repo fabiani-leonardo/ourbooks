@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Books</title>
+	<link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+	<header>
+		<!-- Barra in alto -->
+			<div class="barra-superiore">
+				<div class="link-superiori">
+					<!-- Se l'utente è autenticato -->
+					<span th:if="${credentials}"> <!-- dal controller sto passando questa variabile offerta da Spring Security 
+				che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+						<span th:text="${credentials.username}"></span> <!-- stampiamo lo username dell'utente autenticato' -->
+						<a href="/logout">Logout</a> <!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+					</span>
+					<!-- Se l'utente NON è autenticato -->
+					<span th:if="${credentials == null}"> <!-- Se l'utente non è autenticat questo oggetto è null -->
+						<a href="/login">Login</a> <!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+						<a href="/register">Registrati</a> <!-- o registrarsi -->
+					</span>
+				</div>
+				<a class="logo" href="/">OURBOOKS</a>
+			</div>
+	</header>
+
+	<h1>Books</h1>
+	<div th:if="${credentials != null and credentials.role == 'ADMIN'}">
+		<a class="button" href="/books/add">aggiungi nuovo libro</a>
+	</div>
+	
+	<div th:if="${books==null || books.isEmpty()}">No books here :/</div>
+	<ul class="bookList">
+		<li th:each="book : ${books}">
+			<a th:href="@{'/books' + '/' + ${book.id}}"
+				th:text="|${book.title} (${book.publicationYear})|"></a>
+		</li>
+	</ul>
+</body>
+
+</html>

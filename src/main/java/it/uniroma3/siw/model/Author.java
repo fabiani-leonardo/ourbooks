@@ -38,11 +38,11 @@ public class Author {
 		this.id = id;
 	}
 
-	public String getFirstName() {
+	public String getFullName() {
 		return fullName;
 	}
 
-	public void setFirstName(String name) {
+	public void setFullName(String name) {
 		this.fullName = name;
 	}
 

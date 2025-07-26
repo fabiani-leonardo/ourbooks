@@ -19,8 +19,7 @@ public class Book {
 	@Max(2050)
 	private Integer publicationYear;
 	
-	@ElementCollection
-	private List<String> imagePaths; // Percorsi relativi a file salvati
+	private String imagePath; // Percorsi relativi a file salvati
 
 	@ManyToMany
 	private Set<Author> authors;
@@ -30,12 +29,13 @@ public class Book {
 	
 	
 	
-	public List<String> getImagePaths() {
-		return imagePaths;
+
+	public String getImagePath() {
+		return imagePath;
 	}
 
-	public void setImagePaths(List<String> imagePaths) {
-		this.imagePaths = imagePaths;
+	public void setImagePath(String imagePath) {
+		this.imagePath = imagePath;
 	}
 
 	public Set<Author> getAuthors() {

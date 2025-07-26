@@ -26,8 +26,7 @@ public class AuthorService {
         return this.authorRepository.save(author);
     }
 
-	public List<Book> findAll() {
-		// TODO Auto-generated method stub
-		return null;
+	public List<Author> findAll() {
+		return (List<Author>) authorRepository.findAll();
 	}
 }

@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title th:text="${book.title} + ' - Book Details'">Book Details</title>
+	<link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+	<header>
+		<!-- Barra in alto -->
+		<div class="barra-superiore">
+			<div class="link-superiori">
+				<!-- Se l'utente è autenticato -->
+				<span th:if="${credentials}">
+					<span th:text="${credentials.username}"></span>
+					<a href="/logout">Logout</a>
+				</span>
+				<!-- Se l'utente NON è autenticato -->
+				<span th:if="${credentials == null}">
+					<a href="/login">Login</a>
+					<a href="/register">Registrati</a>
+				</span>
+			</div>
+			<a class="logo" href="/">OURBOOKS</a>
+		</div>
+	</header>
+
+	<div class="breadcrumb">
+		<a href="/">Home</a> > <a href="/books">Books</a> > <span th:text="${book.title}"></span>
+	</div>
+
+	<div class="book-details">
+		<div class="book-image">
+			<img th:if="${book.imagePath}" th:src="@{'/images/' + ${book.imagePath}}" th:alt="${book.title}" />
+			<div th:if="${book.imagePath == null}" class="no-image">📚</div>
+		</div>
+
+		<div class="book-info">
+			<h1 th:text="${book.title}"></h1>
+			
+			<div class="book-meta">
+				<div th:if="${book.publicationYear}">
+					<strong>Anno di pubblicazione:</strong>
+					<span th:text="${book.publicationYear}"></span>
+				</div>
+
+				<div th:if="${book.authors != null && !book.authors.isEmpty()}">
+					<strong>Autori:</strong>
+					<ul class="authors-list">
+						<li th:each="author : ${book.authors}">
+							<a th:href="@{'/authors/' + ${author.id}}" th:text="${author.fullName}"></a>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<div th:if="${credentials != null and credentials.role == 'ADMIN'}" class="admin-actions">
+				<h3>Admin Actions</h3>
+				<a th:href="@{'/books/edit/' + ${book.id}}" class="button">Modifica libro</a>
+				<a th:href="@{'/books/delete/' + ${book.id}}" class="button delete" 
+				   onclick="return confirm('Sei sicuro di voler eliminare questo libro?')">Elimina libro</a>
+			</div>
+		</div>
+	</div>
+
+	<div th:if="${book.reviews != null && !book.reviews.isEmpty()}" class="reviews-section">
+		<h2>Recensioni</h2>
+		<div class="reviews-list">
+			<div th:each="review : ${book.reviews}" class="review">
+				<div class="review-header">
+					<h4 th:text="${review.title}"></h4>
+					<div class="rating">
+						<span th:each="star : ${#numbers.sequence(1, review.rating)}">⭐</span>
+						<span th:text="'(' + ${review.rating} + '/5)'"></span>
+					</div>
+				</div>
+				<p th:text="${review.content}"></p>
+				<div class="review-author">
+					<small>di <span th:text="${review.user.name + ' ' + review.user.surname}"></span></small>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="navigation">
+		<a href="/books" class="button">← Torna ai libri</a>
+		<a href="/" class="button">Home</a>
+	</div>
+</body>
+
+</html>

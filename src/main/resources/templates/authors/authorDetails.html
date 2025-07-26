@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title th:text="${author.fullName} + ' - Author Details'">Author Details</title>
+	<link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+	<header>
+		<!-- Barra in alto -->
+		<div class="barra-superiore">
+			<div class="link-superiori">
+				<!-- Se l'utente è autenticato -->
+				<span th:if="${credentials}">
+					<span th:text="${credentials.username}"></span>
+					<a href="/logout">Logout</a>
+				</span>
+				<!-- Se l'utente NON è autenticato -->
+				<span th:if="${credentials == null}">
+					<a href="/login">Login</a>
+					<a href="/register">Registrati</a>
+				</span>
+			</div>
+			<a class="logo" href="/">OURBOOKS</a>
+		</div>
+	</header>
+
+	<div class="breadcrumb">
+		<a href="/">Home</a> > <a href="/authors">Authors</a> > <span th:text="${author.fullName}"></span>
+	</div>
+
+	<div class="author-details">
+		<div class="author-image">
+			<img th:if="${author.image}" th:src="@{'/images/' + ${author.image}}" th:alt="${author.fullName}" />
+			<div th:if="${author.image == null}" class="no-image">👤</div>
+		</div>
+
+		<div class="author-info">
+			<h1 th:text="${author.fullName}"></h1>
+			
+			<div class="author-meta">
+				<div th:if="${author.nationality}">
+					<strong>Nazionalità:</strong>
+					<span th:text="${author.nationality}"></span>
+				</div>
+
+				<div th:if="${author.birthDate}">
+					<strong>Data di nascita:</strong>
+					<span th:text="${#temporals.format(author.birthDate, 'dd/MM/yyyy')}"></span>
+				</div>
+
+				<div th:if="${author.deathDate}">
+					<strong>Data di morte:</strong>
+					<span th:text="${#temporals.format(author.deathDate, 'dd/MM/yyyy')}"></span>
+				</div>
+
+				<div th:if="${author.books}">
+					<strong>Numero di libri:</strong>
+					<span th:text="${#sets.size(author.books)}"></span>
+				</div>
+			</div>
+
+			<div th:if="${credentials != null and credentials.role == 'ADMIN'}" class="admin-actions">
+				<h3>Admin Actions</h3>
+				<a th:href="@{'/authors/edit/' + ${author.id}}" class="button">Modifica autore</a>
+				<a th:href="@{'/authors/delete/' + ${author.id}}" class="button delete" 
+				   onclick="return confirm('Sei sicuro di voler eliminare questo autore?')">Elimina autore</a>
+			</div>
+		</div>
+	</div>
+
+	<div th:if="${author.books != null && !author.books.isEmpty()}" class="books-section">
+		<h2>Libri di <span th:text="${author.fullName}"></span></h2>
+		<ul class="books-list">
+			<li th:each="book : ${author.books}">
+				<a th:href="@{'/books/' + ${book.id}}" 
+				   th:text="${book.title} + ' (' + ${book.publicationYear} + ')'"></a>
+			</li>
+		</ul>
+	</div>
+
+	<div class="navigation">
+		<a href="/authors" class="button">← Torna agli autori</a>
+		<a href="/" class="button">Home</a>
+	</div>
+</body>
+
+</html>

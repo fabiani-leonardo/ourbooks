@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -35,11 +36,16 @@ public class BooksController {
         List<Book> books = bookService.findAll();
         model.addAttribute("books", books);
         
-        UserDetails userDetails = (UserDetails)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-		//User user=credentials.getUser();
-		model.addAttribute("credentials", credentials);
-		
+        // Gestione utente autenticato/anonimo
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+            model.addAttribute("credentials", credentials);
+        } else {
+            model.addAttribute("credentials", null);
+        }
+        
         return "/books/listBooks";
     }
 
@@ -47,8 +53,19 @@ public class BooksController {
     @GetMapping("/{id}")
     public String showBookDetails(@PathVariable("id") Long id, Model model) {
         Book book = bookService.findById(id);
-        if (book!=null) {
+        if (book != null) {
             model.addAttribute("book", book);
+            
+            // Gestione utente autenticato/anonimo
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+                Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+                model.addAttribute("credentials", credentials);
+            } else {
+                model.addAttribute("credentials", null);
+            }
+            
             return "books/bookDetails";
         } else {
             return "redirect:/books";
@@ -66,12 +83,17 @@ public class BooksController {
     /** Pagina per aggiungere un nuovo libro */
     @GetMapping("/add")
     public String addBookForm(Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
         Credentials credentials = credentialsService.getCredentials(principal.getName());
         if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
             return "redirect:/books";
         }
 
         model.addAttribute("book", new Book());
+        model.addAttribute("credentials", credentials);
         return "/books/formAddBook";
     }
     

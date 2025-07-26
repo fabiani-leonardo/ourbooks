@@ -41,23 +41,18 @@
 			
 			<div class="author-meta">
 				<div th:if="${author.nationality}">
-					<strong>Nazionalità:</strong>
+					<strong>nationality:</strong>
 					<span th:text="${author.nationality}"></span>
 				</div>
 
 				<div th:if="${author.birthDate}">
-					<strong>Data di nascita:</strong>
+					<strong>birth date:</strong>
 					<span th:text="${#temporals.format(author.birthDate, 'dd/MM/yyyy')}"></span>
 				</div>
 
 				<div th:if="${author.deathDate}">
-					<strong>Data di morte:</strong>
+					<strong>death date:</strong>
 					<span th:text="${#temporals.format(author.deathDate, 'dd/MM/yyyy')}"></span>
-				</div>
-
-				<div th:if="${author.books}">
-					<strong>Numero di libri:</strong>
-					<span th:text="${#sets.size(author.books)}"></span>
 				</div>
 			</div>
 
@@ -78,11 +73,6 @@
 				   th:text="${book.title} + ' (' + ${book.publicationYear} + ')'"></a>
 			</li>
 		</ul>
-	</div>
-
-	<div class="navigation">
-		<a href="/authors" class="button">← Torna agli autori</a>
-		<a href="/" class="button">Home</a>
 	</div>
 </body>
 

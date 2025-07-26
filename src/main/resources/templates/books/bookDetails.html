@@ -19,7 +19,7 @@
 				<!-- Se l'utente NON è autenticato -->
 				<span th:if="${credentials == null}">
 					<a href="/login">Login</a>
-					<a href="/register">Registrati</a>
+					<a href="/register">Register</a>
 				</span>
 			</div>
 			<a class="logo" href="/">OURBOOKS</a>
@@ -41,12 +41,12 @@
 			
 			<div class="book-meta">
 				<div th:if="${book.publicationYear}">
-					<strong>Anno di pubblicazione:</strong>
+					<strong>Publication Year:</strong>
 					<span th:text="${book.publicationYear}"></span>
 				</div>
 
 				<div th:if="${book.authors != null && !book.authors.isEmpty()}">
-					<strong>Autori:</strong>
+					<strong>Authors:</strong>
 					<ul class="authors-list">
 						<li th:each="author : ${book.authors}">
 							<a th:href="@{'/authors/' + ${author.id}}" th:text="${author.fullName}"></a>
@@ -65,7 +65,7 @@
 	</div>
 
 	<div th:if="${book.reviews != null && !book.reviews.isEmpty()}" class="reviews-section">
-		<h2>Recensioni</h2>
+		<h2>Reviews</h2>
 		<div class="reviews-list">
 			<div th:each="review : ${book.reviews}" class="review">
 				<div class="review-header">
@@ -81,11 +81,6 @@
 				</div>
 			</div>
 		</div>
-	</div>
-
-	<div class="navigation">
-		<a href="/books" class="button">← Torna ai libri</a>
-		<a href="/" class="button">Home</a>
 	</div>
 </body>
 

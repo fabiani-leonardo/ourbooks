@@ -20,7 +20,7 @@
 					<!-- Se l'utente NON è autenticato -->
 					<span th:if="${credentials == null}"> <!-- Se l'utente non è autenticat questo oggetto è null -->
 						<a href="/login">Login</a> <!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
-						<a href="/register">Registrati</a> <!-- o registrarsi -->
+						<a href="/register">Register</a> <!-- o registrarsi -->
 					</span>
 				</div>
 				<a class="logo" href="/">OURBOOKS</a>
@@ -29,7 +29,7 @@
 
 	<h1>Books</h1>
 	<div th:if="${credentials != null and credentials.role == 'ADMIN'}">
-		<a class="button" href="/books/add">aggiungi nuovo libro</a>
+		<a class="button" href="/books/add">add new book</a>
 	</div>
 	
 	<div th:if="${books==null || books.isEmpty()}">No books here :/</div>

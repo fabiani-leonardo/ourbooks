@@ -30,22 +30,22 @@
 
   <form th:action="@{/authors/add}" th:object="${author}" method="post" enctype="multipart/form-data">
     <div>
-      <label for="fullName">Nome completo:</label>
+      <label for="fullName">full name:</label>
       <input type="text" id="fullName" th:field="*{fullName}" required />
     </div>
 
     <div>
-      <label for="birthDate">Data di nascita:</label>
+      <label for="birthDate">birth date:</label>
       <input type="date" id="birthDate" th:field="*{birthDate}" />
     </div>
 
     <div>
-      <label for="deathDate">Data di morte:</label>
+      <label for="deathDate">death date:</label>
       <input type="date" id="deathDate" th:field="*{deathDate}" />
     </div>
 
     <div>
-      <label for="nationality">Nazionalità:</label>
+      <label for="nationality">nationality:</label>
       <input type="text" id="nationality" th:field="*{nationality}" />
     </div>
 

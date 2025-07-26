@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Add a new book</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+  <header>
+	<!-- Barra in alto -->
+				<div class="barra-superiore">
+					<div class="link-superiori">
+						<!-- Se l'utente è autenticato -->
+						<span th:if="${credentials}"> <!-- dal controller sto passando questa variabile offerta da Spring Security 
+					che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+							<span th:text="${credentials.username}"></span> <!-- stampiamo lo username dell'utente autenticato' -->
+							<a href="/logout">Logout</a> <!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+						</span>
+						<!-- Se l'utente NON è autenticato -->
+						<span th:if="${credentials == null}"> <!-- Se l'utente non è autenticat questo oggetto è null -->
+							<a href="/login">Login</a> <!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+							<a href="/register">Registrati</a> <!-- o registrarsi -->
+						</span>
+					</div>
+					<a class="logo" href="/"><h2>OURBOOKS</h2></a>
+				</div>
+  </header>
+
+  <h1>Add a new book</h1>
+
+  <form th:action="@{/books/add}" th:object="${book}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="title">Titolo:</label>
+      <input type="text" id="title" th:field="*{title}" required />
+    </div>
+
+    <div>
+      <label for="publicationYear">publication year:</label>
+      <input type="number" id="publicationYear" th:field="*{publicationYear}" required />
+    </div>
+
+    <div>
+      <label for="imageFile">Image (PNG/JPG):</label>
+      <input type="file" id="imageFile" name="imageFile" accept="image/png, image/jpeg" required />
+    </div>
+
+    <div>
+      <label>Autori:</label>
+      <a th:href="@{'/books/' + ${book.id} + '/authors-edit'}">Modify authors</a>
+    </div>
+
+    <button type="submit">Save new book</button>
+    <a th:href="@{/books}"><button type="button">cancel</button></a>
+  </form>
+</body>
+</html>

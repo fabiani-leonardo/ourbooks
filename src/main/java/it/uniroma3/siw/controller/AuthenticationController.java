@@ -25,7 +25,7 @@ import jakarta.validation.Valid;
 @Controller
 public class AuthenticationController {
 	
-	private String formChangeCredentials="formChangeCredentials";	//uso una variabile per questo form solo perchè richiamerò questa pafina molte volte
+	private String formChangeCredentials="/authentication/formChangeCredentials";	//uso una variabile per questo form solo perchè richiamerò questa pafina molte volte
 
 	@Autowired
 	private CredentialsService credentialsService;
@@ -39,14 +39,14 @@ public class AuthenticationController {
 	public String showRegisterForm(Model model) {				//questo oggetto mo del deve contenere le variabili che ci servono nella pagina html
 		model.addAttribute("user", new User());					//aggiungiamo un nuovo oggetto di tipo User al model in cui metteremo i dati dell'utente che si sta registrando
 		model.addAttribute("credentials", new Credentials());	//aggiungiamo un nuovo oggetto di tipo Credentials al model in cui metteremo i dati dell'utente che si sta registrando
-		return "formRegisterUser";								//ed ora ritorniamo la pagina con il form di registrazione
+		return "/authentication/formRegisterUser";								//ed ora ritorniamo la pagina con il form di registrazione
 	}
 
 	//mappiamo la pagina di login
 	
 	@GetMapping(value = "/login")
 	public String showLoginForm(Model model) {
-		return "formLogin";
+		return "/authentication/formLogin";
 	}
 
 	/*se l'accesso è andato a buon fine allora veniamo reindirizzati a questa pagina*/
@@ -70,7 +70,7 @@ public class AuthenticationController {
 			if (credentials.getMustChange()) {
 			    return "redirect:/changeCredentials";	//se lo user che ha acceduto è un admin ed ha la flag mustChange impostata su TRUE vuol dire che deve cambiare le proprie credenziali, quindi lo reindirizziamo alla pagina per cambiarle
 			}else {
-				return "admin/adminHome";				//altrimenti, visto che non deve cambiare le credenziali lo spediamo direttamente alla home degli admin
+				return "adminHome";				//altrimenti, visto che non deve cambiare le credenziali lo spediamo direttamente alla home degli admin
 			}
 		}
 		return "home";									//se non è admin dopo l'accesso lo mandiamo alla home per users standard
@@ -91,9 +91,9 @@ public class AuthenticationController {
 			credentials.setUser(user);												//leghiamo le credenziali all'utente
 			credentialsService.saveCredentials(credentials);						//salviamo le credenziali nel DB
 			model.addAttribute("user", user);										//aggiugiamo i dati dello user al model in modo che possano essere usati nell'html
-			return "registrationSuccessful";
+			return "/authentication/registrationSuccessful";
 		}
-		return "formRegisterUser";														//se i dati inseriti non sono validi l'utente viene rispedito al form
+		return "/authentication/formRegisterUser";														//se i dati inseriti non sono validi l'utente viene rispedito al form
 	}
 	
 	/*metodo che gestisce la richiesta della pagina di cambio credenziali utente*/

@@ -45,7 +45,7 @@ public class MainController {
 			// Se l'utente ha ruolo ADMIN, reindirizza alla home dell'area amministratore
 			if (credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
 				model.addAttribute("userDetails", userDetails);	//aggiungo ad home.html la possibilità di utilizzare i dati dell'utente autenticato presenti in userDetails
-				return "admin/adminHome.html";
+				return "adminHome.html";
 			}
 			
 

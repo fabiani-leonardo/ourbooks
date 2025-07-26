@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 import it.uniroma3.siw.model.Book;
@@ -16,6 +17,7 @@ import it.uniroma3.siw.model.Credentials;
 import it.uniroma3.siw.model.User;
 import it.uniroma3.siw.service.BookService;
 import it.uniroma3.siw.service.CredentialsService;
+import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/books")
@@ -70,6 +72,17 @@ public class BooksController {
         }
 
         model.addAttribute("book", new Book());
-        return "formAddBook"; // da creare
+        return "/books/formAddBook";
+    }
+    
+    @PostMapping("/add")
+    public String addBook(@Valid @ModelAttribute("book") Book book,
+                          BindingResult bindingResult,
+                          Model model) {
+        if (bindingResult.hasErrors()) {
+            return "books/formAddBook"; // torna al form se ci sono errori di validazione
+        }
+        this.bookService.save(book);
+        return "redirect:/books"; // torna alla lista dei libri
     }
 }

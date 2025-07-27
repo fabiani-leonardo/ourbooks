@@ -104,6 +104,10 @@
 				<div class="review-author">
 					<small>di <span th:text="${review.user.name + ' ' + review.user.surname}"></span></small>
 				</div>
+				<div th:if="${credentials != null and credentials.role == 'ADMIN'}" class="admin-actions">
+					<a th:href="@{'/reviews/delete/' + ${review.id}}" class="button delete" 
+						onclick="return confirm('you really want to delete this review?')">Delete review</a>
+				</div>
 			</div>
 		</div>
 	</div>

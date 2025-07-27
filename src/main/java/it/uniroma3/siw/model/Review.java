@@ -10,14 +10,15 @@ public class Review {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long id;
 
-	@NotBlank
+	@NotBlank(message = "Il titolo non può essere vuoto")
 	private String title;
 
-	@NotBlank
+	@NotBlank(message = "Il contenuto non può essere vuoto")
 	private String content;
 
-	@Min(1)
-	@Max(5)
+	@Min(value = 1, message = "La valutazione deve essere almeno 1")
+	@Max(value = 5, message = "La valutazione non può essere superiore a 5")
+	@NotNull(message = "La valutazione è obbligatoria")
 	private Integer rating;
 
 	@ManyToOne
@@ -53,7 +54,7 @@ public class Review {
 	}
 
 	public Integer getRating() {
-	    return rating;  // NON return rating.intValue() o simili
+	    return rating;
 	}
 
 	public void setRating(Integer rating) {

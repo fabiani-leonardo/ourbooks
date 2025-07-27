@@ -82,8 +82,22 @@ public class ReviewsController {
         // Recupera le credenziali dell'utente (Spring Security garantisce che principal non è null)
         Credentials credentials = credentialsService.getCredentials(principal.getName());
 
+        // Validazione personalizzata per la lunghezza dei campi
+        if (review.getTitle() != null && review.getTitle().length() > 255) {
+            bindingResult.rejectValue("title", "error.review", "Il titolo non può superare i 255 caratteri");
+        }
+        
+        if (review.getContent() != null && review.getContent().length() > 255) {
+            bindingResult.rejectValue("content", "error.review", "Il contenuto non può superare i 255 caratteri");
+        }
+
         // Controlla se ci sono errori di validazione
         if (bindingResult.hasErrors()) {
+            // Riassegna book e user alla recensione per evitare che si perdano
+            review.setBook(book);
+            review.setUser(credentials.getUser());
+            
+            model.addAttribute("review", review);
             model.addAttribute("book", book);
             model.addAttribute("credentials", credentials);
             return "reviews/formAddReview";
@@ -149,8 +163,23 @@ public class ReviewsController {
             return "redirect:/books/" + existingReview.getBook().getId();
         }
 
+        // Validazione personalizzata per la lunghezza dei campi
+        if (updatedReview.getTitle() != null && updatedReview.getTitle().length() > 255) {
+            bindingResult.rejectValue("title", "error.review", "Il titolo non può superare i 255 caratteri");
+        }
+        
+        if (updatedReview.getContent() != null && updatedReview.getContent().length() > 255) {
+            bindingResult.rejectValue("content", "error.review", "Il contenuto non può superare i 255 caratteri");
+        }
+
         // Controlla se ci sono errori di validazione
         if (bindingResult.hasErrors()) {
+            // Importante: riassegna l'ID alla recensione nel form per evitare che diventi null
+            updatedReview.setId(existingReview.getId());
+            updatedReview.setBook(existingReview.getBook());
+            updatedReview.setUser(existingReview.getUser());
+            
+            model.addAttribute("review", updatedReview);
             model.addAttribute("book", existingReview.getBook());
             model.addAttribute("credentials", credentials);
             return "reviews/formEditReview";

@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Add a new book - Step 1</title>
+  <title>Edit Book</title>
   <link rel="stylesheet" href="/css/style.css"/>
 </head>
 <body>
@@ -25,10 +25,10 @@
     </div>
   </header>
 
-  <h1>Add a new book - Step 1 of 2</h1>
-  <p>First, enter the basic book information. In the next step you'll be able to select the authors.</p>
+  <h1>Edit Book</h1>
+  <h2 th:text="'Editing: ' + ${book.title}"></h2>
 
-  <form th:action="@{/books/add}" th:object="${book}" method="post" enctype="multipart/form-data">
+  <form th:action="@{'/books/edit/' + ${book.id}}" th:object="${book}" method="post" enctype="multipart/form-data">
     <div>
       <label for="title">Title:</label>
       <input type="text" id="title" th:field="*{title}" required />
@@ -42,20 +42,40 @@
     </div>
 
     <div>
-      <label for="imageFile">Image (PNG/JPG):</label>
-      <input type="file" id="imageFile" name="imageFile" accept="image/png, image/jpeg" />
-      <small>Optional - you can add an image for the book cover</small>
+      <label>Current Image:</label>
+      <div th:if="${book.imagePath}">
+        <img th:src="@{'/images/' + ${book.imagePath}}" th:alt="${book.title}" style="max-width: 200px; max-height: 200px;" />
+        <p th:text="'Current image: ' + ${book.imagePath}"></p>
+      </div>
+      <div th:if="${book.imagePath == null}">
+        <p>No image currently set</p>
+      </div>
     </div>
 
-    <div class="form-actions">
-      <button type="submit">Save and Continue to Authors Selection</button>
-      <a th:href="@{/books}"><button type="button">Cancel</button></a>
+    <div>
+      <label for="imageFile">Change Image (PNG/JPG):</label>
+      <input type="file" id="imageFile" name="imageFile" accept="image/png, image/jpeg" />
+      <small>Leave empty to keep current image</small>
+    </div>
+
+    <div>
+      <label>Current Authors:</label>
+      <div th:if="${book.authors != null && !book.authors.isEmpty()}">
+        <ul>
+          <li th:each="author : ${book.authors}" th:text="${author.fullName}"></li>
+        </ul>
+        <a th:href="@{'/books/' + ${book.id} + '/authors-edit'}">Modify Authors</a>
+      </div>
+      <div th:if="${book.authors == null || book.authors.isEmpty()}">
+        <p>No authors assigned</p>
+        <a th:href="@{'/books/' + ${book.id} + '/authors-edit'}">Add Authors</a>
+      </div>
+    </div>
+
+    <div>
+      <button type="submit">Save Changes</button>
+      <a th:href="@{'/books/' + ${book.id}}"><button type="button">Cancel</button></a>
     </div>
   </form>
-
-  <div class="step-indicator">
-    <span class="step active">1. Book Info</span>
-    <span class="step">2. Select Authors</span>
-  </div>
 </body>
 </html>

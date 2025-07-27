@@ -2,62 +2,74 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Modifica Autori Libro</title>
+  <title>Select Authors - Step 2</title>
   <link rel="stylesheet" href="/css/style.css"/>
-  <script>
-    function moveOption(sourceId, targetId) {
-      const src = document.getElementById(sourceId);
-      const tgt = document.getElementById(targetId);
-      const selected = Array.from(src.selectedOptions);
-      selected.forEach(opt => {
-        // rimuovi dall'origine
-        src.removeChild(opt);
-        // aggiungi al target
-        tgt.appendChild(opt);
-      });
-    }
-
-    function selectAllAndSubmit() {
-      const tgt = document.getElementById('bookAuthors');
-      Array.from(tgt.options).forEach(o => o.selected = true);
-      document.getElementById('authorsForm').submit();
-    }
-  </script>
 </head>
 <body>
   <header>
-    <a th:href="@{/books/admin}"><h1>Gestione Libri</h1></a>
+    <!-- Barra in alto -->
+    <div class="barra-superiore">
+      <div class="link-superiori">
+        <!-- Se l'utente è autenticato -->
+        <span th:if="${credentials}">
+          <span th:text="${credentials.username}"></span>
+          <a href="/logout">Logout</a>
+        </span>
+        <!-- Se l'utente NON è autenticato -->
+        <span th:if="${credentials == null}">
+          <a href="/login">Login</a>
+          <a href="/register">Registrati</a>
+        </span>
+      </div>
+      <a class="logo" href="/"><h2>OURBOOKS</h2></a>
+    </div>
   </header>
 
-  <h2 th:text="'Autori per: ' + ${book.title}"></h2>
+  <h1>Select Authors - Step 2 of 2</h1>
+  <h2 th:text="'Authors for: ' + ${book.title}"></h2>
 
-  <form id="authorsForm"
-        th:action="@{'/books/' + ${book.id} + '/authors-update'}"
-        method="post">
+  <div>
     <div>
-      <label>Autori del libro</label><br/>
-      <select id="bookAuthors" name="authors" multiple size="10">
-        <option th:each="a : ${book.authors}"
-                th:value="${a.id}"
-                th:text="${a.fullName}"></option>
-      </select>
-      <button type="button" onclick="moveOption('bookAuthors','allAuthors')">← Rimuovi</button>
+      <h3>Current Book Authors</h3>
+      <div th:if="${book.authors == null || book.authors.isEmpty()}">
+        <p>No authors selected yet. Click on authors from the list below to add them.</p>
+      </div>
+      <div th:if="${book.authors != null && !book.authors.isEmpty()}">
+        <div th:each="author : ${book.authors}">
+          <span th:text="${author.fullName}"></span>
+          <a th:href="@{'/books/' + ${book.id} + '/authors/remove/' + ${author.id}}" 
+             onclick="return confirm('Remove this author from the book?')">
+            Remove
+          </a>
+        </div>
+      </div>
     </div>
 
     <div>
-      <label>Tutti gli autori</label><br/>
-      <select id="allAuthors" multiple size="10">
-        <option th:each="a : ${allAuthors}"
-                th:value="${a.id}"
-                th:text="${a.fullName}"></option>
-      </select>
-      <button type="button" onclick="moveOption('allAuthors','bookAuthors')">Aggiungi →</button>
+      <h3>Available Authors</h3>
+      <div th:if="${availableAuthors == null || availableAuthors.isEmpty()}">
+        <p>All authors have been added to this book or no authors exist yet.</p>
+        <a href="/authors/add">Add a new author</a>
+      </div>
+      <div th:if="${availableAuthors != null && !availableAuthors.isEmpty()}">
+        <div th:each="author : ${availableAuthors}">
+          <span th:text="${author.fullName}"></span>
+          <a th:href="@{'/books/' + ${book.id} + '/authors/add/' + ${author.id}}">
+            Add to Book
+          </a>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div>
-      <button type="button" onclick="selectAllAndSubmit()">Salva Autori</button>
-      <a th:href="@{/books/admin}"><button type="button">Annulla</button></a>
-    </div>
-  </form>
+  <div>
+    <a th:href="@{'/books/' + ${book.id}}">Finish and View Book</a>
+    <a th:href="@{/books}">Back to Books List</a>
+  </div>
+
+  <div>
+    <span>1. Book Info ✓</span>
+    <span>2. Select Authors</span>
+  </div>
 </body>
 </html>

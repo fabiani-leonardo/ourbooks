@@ -93,13 +93,14 @@ public class AuthorsController {
         return "/authors/formAddAuthor";
     }
     
+    /** Salva nuovo autore */
     @PostMapping("/add")
     public String addAuthor(@Valid @ModelAttribute("author") Author author,
                           BindingResult bindingResult,
                           @RequestParam("imageFile") MultipartFile imageFile,
                           Model model) {
         if (bindingResult.hasErrors()) {
-            return "authors/formAddAuthor"; // torna al form se ci sono errori di validazione
+            return "authors/formAddAuthor";
         }
         
         // Gestione upload immagine
@@ -114,9 +115,112 @@ public class AuthorsController {
         }
         
         this.authorService.saveAuthor(author);
-        return "redirect:/authors"; // torna alla lista degli autori
+        return "redirect:/authors";
     }
     
+    /** Form di modifica autore */
+    @GetMapping("/edit/{id}")
+    public String editAuthorForm(@PathVariable Long id, Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/authors";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/authors";
+        }
+        
+        Author author = authorService.getAuthor(id);
+        if (author == null) {
+            return "redirect:/authors";
+        }
+        
+        model.addAttribute("author", author);
+        model.addAttribute("credentials", credentials);
+        return "/authors/formEditAuthor";
+    }
+    
+    /** Salva le modifiche all'autore */
+    @PostMapping("/edit/{id}")
+    public String updateAuthor(@PathVariable Long id,
+                              @Valid @ModelAttribute("author") Author author,
+                              BindingResult bindingResult,
+                              @RequestParam("imageFile") MultipartFile imageFile,
+                              Model model,
+                              Principal principal) {
+        if (principal == null) {
+            return "redirect:/authors";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/authors";
+        }
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("credentials", credentials);
+            return "authors/formEditAuthor";
+        }
+        
+        // Recupera l'autore esistente dal database
+        Author existingAuthor = authorService.getAuthor(id);
+        if (existingAuthor == null) {
+            return "redirect:/authors";
+        }
+        
+        // Aggiorna i campi dell'autore esistente
+        existingAuthor.setFullName(author.getFullName());
+        existingAuthor.setBirthDate(author.getBirthDate());
+        existingAuthor.setDeathDate(author.getDeathDate());
+        existingAuthor.setNationality(author.getNationality());
+        
+        // Gestione upload immagine (solo se è stata caricata una nuova immagine)
+        if (!imageFile.isEmpty()) {
+            try {
+                String fileName = saveImage(imageFile);
+                existingAuthor.setImage(fileName);
+            } catch (IOException e) {
+                model.addAttribute("error", "Errore nel caricamento dell'immagine");
+                model.addAttribute("credentials", credentials);
+                return "authors/formEditAuthor";
+            }
+        }
+        // Se non è stata caricata una nuova immagine, mantieni quella esistente
+        
+        // Salva le modifiche
+        authorService.saveAuthor(existingAuthor);
+        
+        // Reindirizza ai dettagli dell'autore
+        return "redirect:/authors/" + id;
+    }
+    
+    /** Elimina autore */
+    @GetMapping("/delete/{id}")
+    public String deleteAuthor(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return "redirect:/authors";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/authors";
+        }
+        
+        Author author = authorService.getAuthor(id);
+        if (author != null) {
+            // Prima di eliminare, rimuovi l'autore da tutti i libri associati
+            if (author.getBooks() != null) {
+                for (it.uniroma3.siw.model.Book book : author.getBooks()) {
+                    book.getAuthors().remove(author);
+                }
+            }
+            authorService.deleteAuthor(id);
+        }
+        
+        return "redirect:/authors";
+    }
+    
+    /** Metodo helper per salvare le immagini */
     private String saveImage(MultipartFile file) throws IOException {
         // Genera un nome file unico
         String originalFilename = file.getOriginalFilename();

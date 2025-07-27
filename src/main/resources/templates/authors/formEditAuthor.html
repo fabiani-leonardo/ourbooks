@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Edit Author</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+  <header>
+    <!-- Barra in alto -->
+    <div class="barra-superiore">
+      <div class="link-superiori">
+        <!-- Se l'utente è autenticato -->
+        <span th:if="${credentials}">
+          <span th:text="${credentials.username}"></span>
+          <a href="/logout">Logout</a>
+        </span>
+        <!-- Se l'utente NON è autenticato -->
+        <span th:if="${credentials == null}">
+          <a href="/login">Login</a>
+          <a href="/register">Registrati</a>
+        </span>
+      </div>
+      <a class="logo" href="/"><h2>OURBOOKS</h2></a>
+    </div>
+  </header>
+
+  <h1>Edit Author</h1>
+  <h2 th:text="'Editing: ' + ${author.fullName}"></h2>
+
+  <form th:action="@{'/authors/edit/' + ${author.id}}" th:object="${author}" method="post" enctype="multipart/form-data">
+    <div>
+      <label for="fullName">Full name:</label>
+      <input type="text" id="fullName" th:field="*{fullName}" required />
+      <span th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}" style="color:red;"></span>
+    </div>
+
+    <div>
+      <label for="birthDate">Birth date:</label>
+      <input type="date" id="birthDate" th:field="*{birthDate}" />
+    </div>
+
+    <div>
+      <label for="deathDate">Death date:</label>
+      <input type="date" id="deathDate" th:field="*{deathDate}" />
+    </div>
+
+    <div>
+      <label for="nationality">Nationality:</label>
+      <input type="text" id="nationality" th:field="*{nationality}" />
+    </div>
+
+    <div>
+      <label>Current Image:</label>
+      <div th:if="${author.image}">
+        <img th:src="@{'/images/' + ${author.image}}" th:alt="${author.fullName}" style="max-width: 200px; max-height: 200px;" />
+        <p th:text="'Current image: ' + ${author.image}"></p>
+      </div>
+      <div th:if="${author.image == null}">
+        <p>No image currently set</p>
+      </div>
+    </div>
+
+    <div>
+      <label for="imageFile">Change Image (PNG/JPG):</label>
+      <input type="file" id="imageFile" name="imageFile" accept="image/png, image/jpeg" />
+      <small>Leave empty to keep current image</small>
+    </div>
+
+    <div th:if="${author.books != null && !author.books.isEmpty()}">
+      <label>Books by this author:</label>
+      <ul>
+        <li th:each="book : ${author.books}">
+          <a th:href="@{'/books/' + ${book.id}}" th:text="${book.title} + ' (' + ${book.publicationYear} + ')'"></a>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <button type="submit">Save Changes</button>
+      <a th:href="@{'/authors/' + ${author.id}}"><button type="button">Cancel</button></a>
+    </div>
+  </form>
+</body>
+</html>

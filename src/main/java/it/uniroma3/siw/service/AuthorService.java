@@ -1,6 +1,7 @@
 // === AuthorService ===
 package it.uniroma3.siw.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,5 +29,25 @@ public class AuthorService {
 
 	public List<Author> findAll() {
 		return (List<Author>) authorRepository.findAll();
+	}
+	
+	@Transactional
+	public List<Author> getAvailableAuthorsForBook(Book book) {
+	    List<Author> allAuthors = this.findAll();
+	    List<Author> availableAuthors = new ArrayList<>();
+	    
+	    for (Author author : allAuthors) {
+	        // Se il libro non ha autori oppure questo autore non è già nel libro
+	        if (book.getAuthors() == null || !book.getAuthors().contains(author)) {
+	            availableAuthors.add(author);
+	        }
+	    }
+	    
+	    return availableAuthors;
+	}
+	
+	@Transactional
+	public void deleteAuthor(Long id) {
+	    this.authorRepository.deleteById(id);
 	}
 }

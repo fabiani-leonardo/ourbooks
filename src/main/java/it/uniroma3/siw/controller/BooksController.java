@@ -6,8 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -19,9 +20,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import it.uniroma3.siw.model.Author;
 import it.uniroma3.siw.model.Book;
 import it.uniroma3.siw.model.Credentials;
-import it.uniroma3.siw.model.User;
+import it.uniroma3.siw.service.AuthorService;
 import it.uniroma3.siw.service.BookService;
 import it.uniroma3.siw.service.CredentialsService;
 import jakarta.validation.Valid;
@@ -35,6 +37,9 @@ public class BooksController {
 
     @Autowired
     private CredentialsService credentialsService;
+    
+    @Autowired
+    private AuthorService authorService;
 
     /** Pagina di ricerca libri */
     @GetMapping
@@ -78,15 +83,81 @@ public class BooksController {
         }
     }
 
-    /** Modifica (placeholder) */
+    /** Form di modifica libro */
     @GetMapping("/edit/{id}")
-    public String booksDetailEdit(@PathVariable Long id, Model model) {
+    public String editBookForm(@PathVariable Long id, Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
         Book book = bookService.findById(id);
+        if (book == null) {
+            return "redirect:/books";
+        }
+        
         model.addAttribute("book", book);
-        return "bookDetail";
+        model.addAttribute("credentials", credentials);
+        return "/books/formEditBook";
+    }
+    
+    /** Salva le modifiche al libro */
+    @PostMapping("/edit/{id}")
+    public String updateBook(@PathVariable Long id,
+                            @Valid @ModelAttribute("book") Book book,
+                            BindingResult bindingResult,
+                            @RequestParam("imageFile") MultipartFile imageFile,
+                            Model model,
+                            Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("credentials", credentials);
+            return "books/formEditBook";
+        }
+        
+        // Recupera il libro esistente dal database
+        Book existingBook = bookService.findById(id);
+        if (existingBook == null) {
+            return "redirect:/books";
+        }
+        
+        // Aggiorna i campi del libro esistente
+        existingBook.setTitle(book.getTitle());
+        existingBook.setPublicationYear(book.getPublicationYear());
+        
+        // Gestione upload immagine (solo se è stata caricata una nuova immagine)
+        if (!imageFile.isEmpty()) {
+            try {
+                String fileName = saveImage(imageFile);
+                existingBook.setImagePath(fileName);
+            } catch (IOException e) {
+                model.addAttribute("error", "Errore nel caricamento dell'immagine");
+                model.addAttribute("credentials", credentials);
+                return "books/formEditBook";
+            }
+        }
+        // Se non è stata caricata una nuova immagine, mantieni quella esistente
+        
+        // Salva le modifiche
+        bookService.save(existingBook);
+        
+        // Reindirizza ai dettagli del libro
+        return "redirect:/books/" + id;
     }
 
-    /** Pagina per aggiungere un nuovo libro */
+    /** Pagina per aggiungere un nuovo libro - Step 1 */
     @GetMapping("/add")
     public String addBookForm(Model model, Principal principal) {
         if (principal == null) {
@@ -103,13 +174,14 @@ public class BooksController {
         return "/books/formAddBook";
     }
     
+    /** Salva nuovo libro e vai al Step 2 (selezione autori) */
     @PostMapping("/add")
     public String addBook(@Valid @ModelAttribute("book") Book book,
                           BindingResult bindingResult,
                           @RequestParam("imageFile") MultipartFile imageFile,
                           Model model) {
         if (bindingResult.hasErrors()) {
-            return "books/formAddBook"; // torna al form se ci sono errori di validazione
+            return "books/formAddBook";
         }
         
         // Gestione upload immagine
@@ -123,10 +195,114 @@ public class BooksController {
             }
         }
         
-        this.bookService.save(book);
-        return "redirect:/books"; // torna alla lista dei libri
+        // Salva il libro PRIMA
+        Book savedBook = this.bookService.save(book);
+        
+        // Poi reindirizza alla pagina di modifica autori (Step 2)
+        return "redirect:/books/" + savedBook.getId() + "/authors-edit";
     }
     
+    /** Step 2: Pagina di selezione autori */
+    @GetMapping("/{id}/authors-edit")
+    public String editBookAuthors(@PathVariable Long id, Model model, Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
+        Book book = bookService.findById(id);
+        if (book == null) {
+            return "redirect:/books";
+        }
+        
+        // Usa il metodo del service per ottenere gli autori disponibili
+        List<Author> availableAuthors = authorService.getAvailableAuthorsForBook(book);
+        
+        model.addAttribute("book", book);
+        model.addAttribute("availableAuthors", availableAuthors);
+        model.addAttribute("credentials", credentials);
+        
+        return "books/editBookAuthors";
+    }
+
+    /** Aggiungi un autore al libro */
+    @GetMapping("/{bookId}/authors/add/{authorId}")
+    public String addAuthorToBook(@PathVariable Long bookId, 
+                                  @PathVariable Long authorId,
+                                  Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
+        Book book = bookService.findById(bookId);
+        Author author = authorService.getAuthor(authorId);
+        
+        if (book != null && author != null) {
+            if (book.getAuthors() == null) {
+                book.setAuthors(new HashSet<>());
+            }
+            book.getAuthors().add(author);
+            bookService.save(book);
+        }
+        
+        return "redirect:/books/" + bookId + "/authors-edit";
+    }
+
+    /** Rimuovi un autore dal libro */
+    @GetMapping("/{bookId}/authors/remove/{authorId}")
+    public String removeAuthorFromBook(@PathVariable Long bookId, 
+                                       @PathVariable Long authorId,
+                                       Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
+        Book book = bookService.findById(bookId);
+        Author author = authorService.getAuthor(authorId);
+        
+        if (book != null && author != null && book.getAuthors() != null) {
+            book.getAuthors().remove(author);
+            bookService.save(book);
+        }
+        
+        return "redirect:/books/" + bookId + "/authors-edit";
+    }
+    
+    /** Elimina libro */
+    @GetMapping("/delete/{id}")
+    public String deleteBook(@PathVariable Long id, Principal principal) {
+        if (principal == null) {
+            return "redirect:/books";
+        }
+        
+        Credentials credentials = credentialsService.getCredentials(principal.getName());
+        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
+            return "redirect:/books";
+        }
+        
+        Book book = bookService.findById(id);
+        if (book != null) {
+            bookService.deleteById(id);
+        }
+        
+        return "redirect:/books";
+    }
+    
+    /** Metodo helper per salvare le immagini */
     private String saveImage(MultipartFile file) throws IOException {
         // Genera un nome file unico
         String originalFilename = file.getOriginalFilename();

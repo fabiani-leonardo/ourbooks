@@ -63,6 +63,31 @@
 			</div>
 		</div>
 	</div>
+	
+	<!-- Sezione per le azioni dell'utente loggato -->
+				<div th:if="${credentials != null and credentials.role != 'ADMIN'}" class="user-actions">
+					
+					<!-- Se l'utente non ha ancora recensito questo libro -->
+					<div th:if="${userReview == null}">
+						<a th:href="@{'/reviews/add/' + ${book.id}}" class="button">Write a review</a>
+					</div>
+					
+					<!-- Se l'utente ha già recensito questo libro -->
+					<div th:if="${userReview != null}">
+						<p><strong>your review:</strong></p>
+						<div class="user-review-preview">
+							<h4 th:text="${userReview.title}"></h4>
+							<div class="rating">
+								<span th:each="star : ${#numbers.sequence(1, userReview.rating)}">⭐</span>
+								<span th:text="'(' + ${userReview.rating} + '/5)'"></span>
+							</div>
+							<p th:text="${userReview.content}"></p>
+						</div>
+						<a th:href="@{'/reviews/edit/' + ${userReview.id}}" class="button">Edit your review</a>
+						<a th:href="@{'/reviews/delete/' + ${userReview.id}}" class="button delete" 
+						   onclick="return confirm('you really want to delete your review?')">Delete your review</a>
+					</div>
+				</div>
 
 	<div th:if="${book.reviews != null && !book.reviews.isEmpty()}" class="reviews-section">
 		<h2>Reviews</h2>

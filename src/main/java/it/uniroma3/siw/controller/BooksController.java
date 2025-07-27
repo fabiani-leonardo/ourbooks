@@ -23,9 +23,11 @@ import org.springframework.web.multipart.MultipartFile;
 import it.uniroma3.siw.model.Author;
 import it.uniroma3.siw.model.Book;
 import it.uniroma3.siw.model.Credentials;
+import it.uniroma3.siw.model.Review;
 import it.uniroma3.siw.service.AuthorService;
 import it.uniroma3.siw.service.BookService;
 import it.uniroma3.siw.service.CredentialsService;
+import it.uniroma3.siw.service.ReviewService;
 import jakarta.validation.Valid;
 
 @Controller
@@ -40,6 +42,9 @@ public class BooksController {
     
     @Autowired
     private AuthorService authorService;
+    
+    @Autowired
+    private ReviewService reviewService;
 
     /** Pagina di ricerca libri */
     @GetMapping
@@ -73,8 +78,13 @@ public class BooksController {
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
                 Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
                 model.addAttribute("credentials", credentials);
+                
+                // Recupera la recensione dell'utente corrente per questo libro (se esiste)
+                Review userReview = reviewService.getUserReviewForBook(credentials.getUser(), book);
+                model.addAttribute("userReview", userReview);
             } else {
                 model.addAttribute("credentials", null);
+                model.addAttribute("userReview", null);
             }
             
             return "books/bookDetails";

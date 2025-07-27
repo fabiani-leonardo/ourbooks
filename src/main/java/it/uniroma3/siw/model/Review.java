@@ -18,7 +18,7 @@ public class Review {
 
 	@Min(1)
 	@Max(5)
-	private int rating;
+	private Integer rating;
 
 	@ManyToOne
 	private Book book;
@@ -52,12 +52,12 @@ public class Review {
 		this.content = content;
 	}
 
-	public int getRating() {
-		return rating;
+	public Integer getRating() {
+	    return rating;  // NON return rating.intValue() o simili
 	}
 
-	public void setRating(int rating) {
-		this.rating = rating;
+	public void setRating(Integer rating) {
+	    this.rating = rating;
 	}
 
 	public Book getBook() {

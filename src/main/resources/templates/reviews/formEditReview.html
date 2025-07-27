@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Modifica recensione</title>
+  <link rel="stylesheet" href="/css/style.css"/>
+</head>
+<body>
+  <header>
+    <!-- Barra in alto -->
+    <div class="barra-superiore">
+      <div class="link-superiori">
+        <!-- Se l'utente è autenticato -->
+        <span th:if="${credentials}">
+          <span th:text="${credentials.username}"></span>
+          <a href="/logout">Logout</a>
+        </span>
+        <!-- Se l'utente NON è autenticato -->
+        <span th:if="${credentials == null}">
+          <a href="/login">Login</a>
+          <a href="/register">Registrati</a>
+        </span>
+      </div>
+      <a class="logo" href="/">OURBOOKS</a>
+    </div>
+  </header>
+
+  <div class="breadcrumb">
+    <a href="/">Home</a> > 
+    <a href="/books">Books</a> > 
+    <a th:href="@{'/books/' + ${book.id}}" th:text="${book.title}"></a> > 
+    <span>Modifica recensione</span>
+  </div>
+
+  <h1>Modifica la tua recensione</h1>
+  <h2 th:text="'Per il libro: ' + ${book.title} + ' (' + ${book.publicationYear} + ')'"></h2>
+
+  <div class="book-info-mini">
+    <img th:if="${book.imagePath}" th:src="@{'/images/' + ${book.imagePath}}" th:alt="${book.title}" style="max-width: 100px; max-height: 150px;" />
+    <div th:if="${book.imagePath == null}" class="no-image-mini">📚</div>
+  </div>
+
+  <form th:action="@{'/reviews/edit/' + ${review.id}}" th:object="${review}" method="post">
+    <div class="form-group">
+      <label for="title">Titolo della recensione:</label>
+      <input type="text" id="title" th:field="*{title}" placeholder="Es: Un libro fantastico!" required />
+      <span th:if="${#fields.hasErrors('title')}" th:errors="*{title}" style="color:red;"></span>
+    </div>
+
+    <div class="form-group">
+      <label for="rating">Valutazione (da 1 a 5 stelle):</label>
+      <select id="rating" th:field="*{rating}" required>
+        <option value="">Seleziona una valutazione</option>
+        <option value="1">⭐ (1/5) - Molto scarso</option>
+        <option value="2">⭐⭐ (2/5) - Scarso</option>
+        <option value="3">⭐⭐⭐ (3/5) - Discreto</option>
+        <option value="4">⭐⭐⭐⭐ (4/5) - Buono</option>
+        <option value="5">⭐⭐⭐⭐⭐ (5/5) - Eccellente</option>
+      </select>
+      <span th:if="${#fields.hasErrors('rating')}" th:errors="*{rating}" style="color:red;"></span>
+    </div>
+
+    <div class="form-group">
+      <label for="content">La tua recensione:</label>
+      <textarea id="content" th:field="*{content}" rows="8" cols="50" 
+                placeholder="Scrivi qui la tua recensione dettagliata del libro..." required></textarea>
+      <span th:if="${#fields.hasErrors('content')}" th:errors="*{content}" style="color:red;"></span>
+    </div>
+
+    <div class="current-review-info">
+      <small>
+        <strong>Recensione creata il:</strong> 
+        <span th:if="${review.id != null}">
+          <!-- Qui potresti aggiungere un campo data di creazione se lo hai nel modello -->
+          (modifica di una recensione esistente)
+        </span>
+      </small>
+    </div>
+
+    <div class="form-actions">
+      <button type="submit" class="button primary">Salva modifiche</button>
+      <a th:href="@{'/books/' + ${book.id}}" class="button secondary">Annulla</a>
+      <a th:href="@{'/reviews/delete/' + ${review.id}}" class="button delete" 
+         onclick="return confirm('Sei sicuro di voler eliminare definitivamente questa recensione?')">
+        Elimina recensione
+      </a>
+    </div>
+  </form>
+
+</body>
+</html>

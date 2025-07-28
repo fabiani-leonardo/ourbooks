@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>Search Books</title>
+	<link rel="stylesheet" href="/css/style.css" />
+</head>
+
+<body>
+	<header>
+		<!-- Barra in alto -->
+			<div class="barra-superiore">
+				<div class="link-superiori">
+					<!-- Se l'utente è autenticato -->
+					<span th:if="${credentials}"> <!-- dal controller sto passando questa variabile offerta da Spring Security 
+				che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+						<span th:text="${credentials.username}"></span> <!-- stampiamo lo username dell'utente autenticato' -->
+						<a href="/logout">Logout</a> <!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+					</span>
+					<!-- Se l'utente NON è autenticato -->
+					<span th:if="${credentials == null}"> <!-- Se l'utente non è autenticat questo oggetto è null -->
+						<a href="/login">Login</a> <!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+						<a href="/register">Register</a> <!-- o registrarsi -->
+					</span>
+				</div>
+				<h1 class="logo"><a href="/">OURBOOKS</a></h1>
+			</div>
+	</header>
+
+	<div class="breadcrumb">
+		<a href="/">Home</a> > <a href="/books">Books</a> > <span>Search</span>
+	</div>
+
+	<h1>Search Books</h1>
+
+	<!-- Barra di ricerca -->
+	<div class="search-form">
+		<form th:action="@{/books/find}" method="post">
+			<div class="search-input-group">
+				<label for="title">Search by title:</label>
+				<input type="text" 
+					   id="title" 
+					   name="title" 
+					   th:value="${searchTerm}" 
+					   placeholder="Enter book title..." 
+					   required 
+					   autofocus />
+				<button type="submit" class="button primary">🔍 Search</button>
+			</div>
+		</form>
+		
+							<div class="search-options">
+			<a href="/books/find" class="button secondary">Clear Search</a>
+			<a href="/books" class="button secondary">Back to All Books</a>
+		</div>
+	</div>
+
+	<!-- Risultati della ricerca -->
+	<div th:if="${books != null}">
+		<hr>
+		
+		<!-- Se non ci sono risultati -->
+		<div th:if="${books.isEmpty()}" class="no-results">
+			<h3>No books matching "<span th:text="${searchTerm}"></span>"</h3>
+			<p>Try searching with different keywords.</p>
+		</div>
+
+		<!-- Se ci sono risultati -->
+		<div th:if="${!books.isEmpty()}" class="search-results">
+			<h3 th:text="'Found ' + ${#lists.size(books)} + ' book(s) matching &quot;' + ${searchTerm} + '&quot;'"></h3>
+			
+			<ul class="bookList">
+				<li th:each="book : ${books}">
+					<div class="book-result">
+						<div class="book-info">
+							<h4>
+								<a th:href="@{'/books/' + ${book.id}}" 
+								   th:text="${book.title}"></a>
+							</h4>
+							<p class="publication-year" 
+							   th:text="'(' + ${book.publicationYear} + ')'"></p>
+							
+							<div th:if="${book.authors != null && !book.authors.isEmpty()}" class="authors">
+								<span class="authors-label">by </span>
+								<span th:each="author, iterStat : ${book.authors}">
+									<a th:href="@{'/authors/' + ${author.id}}" 
+									   th:text="${author.fullName}"></a>
+									<span th:if="${!iterStat.last}">, </span>
+								</span>
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+
+</body>
+
+</html>

@@ -6,24 +6,25 @@
   <link rel="stylesheet" href="/css/style.css"/>
 </head>
 <body>
-  <header>
-    <!-- Barra in alto -->
-    <div class="barra-superiore">
-      <div class="link-superiori">
-        <!-- Se l'utente è autenticato -->
-        <span th:if="${credentials}">
-          <span th:text="${credentials.username}"></span>
-          <a href="/logout">Logout</a>
-        </span>
-        <!-- Se l'utente NON è autenticato -->
-        <span th:if="${credentials == null}">
-          <a href="/login">Login</a>
-          <a href="/register">Registrati</a>
-        </span>
-      </div>
-      <a class="logo" href="/">OURBOOKS</a>
-    </div>
-  </header>
+	<header>
+		<!-- Barra in alto -->
+			<div class="barra-superiore">
+				<div class="link-superiori">
+					<!-- Se l'utente è autenticato -->
+					<span th:if="${credentials}"> <!-- dal controller sto passando questa variabile offerta da Spring Security 
+				che ci fornisce i dati dell'utente autenticato oppure null se non si è auteticato' -->
+						<span th:text="${credentials.username}"></span> <!-- stampiamo lo username dell'utente autenticato' -->
+						<a href="/logout">Logout</a> <!-- diamo all'utente autenticato la possibilità di uscire dal sistema' -->
+					</span>
+					<!-- Se l'utente NON è autenticato -->
+					<span th:if="${credentials == null}"> <!-- Se l'utente non è autenticat questo oggetto è null -->
+						<a href="/login">Login</a> <!-- visto che non è autenticato offriamo la possibilità di loggarsi -->
+						<a href="/register">Register</a> <!-- o registrarsi -->
+					</span>
+				</div>
+				<h1 class="logo"><a href="/">OURBOOKS</a></h1>
+			</div>
+	</header>
 
   <div class="breadcrumb">
     <a href="/">Home</a> > 

@@ -23,13 +23,19 @@
 						<a href="/register">Register</a> <!-- o registrarsi -->
 					</span>
 				</div>
-				<a class="logo" href="/">OURBOOKS</a>
+				<h1 class="logo"><a href="/">OURBOOKS</a></h1>
 			</div>
 	</header>
 
 	<h1>Books</h1>
-	<div th:if="${credentials != null and credentials.role == 'ADMIN'}">
-		<a class="button" href="/books/add">add new book</a>
+	<div class="action-buttons">
+		<!-- Link per la ricerca - visibile a tutti -->
+		<a class="button" href="/books/find">🔍 Search Books</a>
+		
+		<!-- Link per aggiungere libro - solo admin -->
+		<div th:if="${credentials != null and credentials.role == 'ADMIN'}">
+			<a class="button" href="/books/add">add new book</a>
+		</div>
 	</div>
 	
 	<div th:if="${books==null || books.isEmpty()}">No books here :/</div>

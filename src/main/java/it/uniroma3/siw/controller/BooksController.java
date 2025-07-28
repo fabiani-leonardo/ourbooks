@@ -331,4 +331,46 @@ public class BooksController {
         
         return fileName;
     }
+    
+    /** Pagina di ricerca libri */
+    @GetMapping("/find")
+    public String showFindBooksForm(Model model) {
+        // Gestione utente autenticato/anonimo
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+            model.addAttribute("credentials", credentials);
+        } else {
+            model.addAttribute("credentials", null);
+        }
+        
+        return "/books/findBooks";
+    }
+
+    /** Esegui ricerca libri - rimaniamo sulla stessa pagina */
+    @PostMapping("/find")
+    public String searchBooks(@RequestParam("title") String title, Model model) {
+        
+        // Gestione utente autenticato/anonimo
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+            model.addAttribute("credentials", credentials);
+        } else {
+            model.addAttribute("credentials", null);
+        }
+        
+        List<Book> searchResults = null;
+        
+        if (title != null && !title.trim().isEmpty()) {
+            // Effettua la ricerca per titolo
+            searchResults = bookService.findByTitle(title.trim());
+            model.addAttribute("searchTerm", title.trim());
+            model.addAttribute("books", searchResults);
+        }
+        
+        return "/books/findBooks";
+    }
 }

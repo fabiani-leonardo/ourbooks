@@ -15,14 +15,13 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 import static it.uniroma3.siw.model.Credentials.ADMIN_ROLE;
+import static it.uniroma3.siw.model.Credentials.DEFAULT_ROLE;
 
 import javax.sql.DataSource;
 
-	/*Questa classe serve a gestire quali utenti possono accedere a quali pagine del sito*/
-
-	@Configuration								
-	@EnableWebSecurity							
-	public class AuthConfiguration {
+@Configuration								
+@EnableWebSecurity							
+public class AuthConfiguration {
 
     @Autowired
     private DataSource dataSource;
@@ -37,7 +36,7 @@ import javax.sql.DataSource;
     }
     
     @Bean
-    public PasswordEncoder passwordEncoder(){		//Spring userà BCrypt per codificare le password quando vengono salvate.
+    public PasswordEncoder passwordEncoder(){
         return new BCryptPasswordEncoder();
     }
 
@@ -46,39 +45,51 @@ import javax.sql.DataSource;
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    /*questa è la parte importante che va modificata per i permessi*/
-    
     @Bean
     protected SecurityFilterChain configure(final HttpSecurity httpSecurity) throws Exception{
         httpSecurity
                 .csrf().and().cors().disable()
                 .authorizeHttpRequests()
-//                .requestMatchers("/**").permitAll()
-                // chiunque (autenticato o no) può accedere alle pagine index, login, register, ai css e alle immagini
-                .requestMatchers(HttpMethod.GET,"/","/books/**","/register","/css/**", "/images/**", "favicon.ico").permitAll()
-        		// chiunque (autenticato o no) può mandare richieste POST al punto di accesso per login e register 
-                .requestMatchers(HttpMethod.POST,"/register", "/login").permitAll()
-                .requestMatchers(HttpMethod.GET,"/admin/**").hasAnyAuthority(ADMIN_ROLE)
-                .requestMatchers(HttpMethod.POST,"/admin/**").hasAnyAuthority(ADMIN_ROLE)
-        		// tutti gli utenti autenticati possono accere alle pagine rimanenti 
+                
+                // === ACCESSO PUBBLICO (tutti possono accedere) ===
+                .requestMatchers(HttpMethod.GET, "/", "/books", "/books/{id}", "/books/find", "/authors", "/authors/{id}", 
+                                "/register", "/login", "/css/**", "/images/**", "favicon.ico").permitAll()
+                .requestMatchers(HttpMethod.POST, "/register", "/login", "/books/find").permitAll()
+                
+                // === SOLO ADMIN ===
+                .requestMatchers(HttpMethod.GET, "/admin/**", 
+                                "/books/add", "/books/edit/**", "/books/delete/**", "/books/{bookId}/authors-edit", 
+                                "/books/{bookId}/authors/add/**", "/books/{bookId}/authors/remove/**",
+                                "/authors/add", "/authors/edit/**", "/authors/delete/**").hasAuthority(ADMIN_ROLE)
+                .requestMatchers(HttpMethod.POST, "/admin/**", "/books/add", "/books/edit/**", 
+                                "/authors/add", "/authors/edit/**").hasAuthority(ADMIN_ROLE)
+                
+                // === UTENTI AUTENTICATI (admin + utenti normali) ===
+                .requestMatchers(HttpMethod.GET, "/reviews/add/**", "/reviews/edit/**", "/reviews/delete/**", 
+                                "/changeCredentials").authenticated()
+                .requestMatchers(HttpMethod.POST, "/reviews/add/**", "/reviews/edit/**", 
+                                "/modificaCredenziali").authenticated()
+                
+                // === TUTTO IL RESTO RICHIEDE AUTENTICAZIONE ===
                 .anyRequest().authenticated()
-                // LOGIN: qui definiamo il login
+                
+                // === LOGIN ===
                 .and().formLogin()
                 .loginPage("/login")
                 .permitAll()
                 .defaultSuccessUrl("/success", true)
                 .failureUrl("/login?error=true")
-                // LOGOUT: qui definiamo il logout
+                
+                // === LOGOUT ===
                 .and()
                 .logout()
-                // il logout è attivato con una richiesta GET a "/logout"
                 .logoutUrl("/logout")
-                // in caso di successo, si viene reindirizzati alla home
                 .logoutSuccessUrl("/")
                 .invalidateHttpSession(true)
                 .deleteCookies("JSESSIONID")
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                 .clearAuthentication(true).permitAll();
+                
         return httpSecurity.build();
     }
 }

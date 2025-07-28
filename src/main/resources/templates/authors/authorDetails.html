@@ -60,9 +60,9 @@
 			<div th:if="${credentials != null and credentials.role == 'ADMIN'}" class="admin-actions">
 				<h3>Admin Actions</h3>
 				<!-- Per la modifica -->
-				<a th:href="@{'/authors/edit/' + ${author.id}}">Modifica autore</a>
+				<a class="button" th:href="@{'/authors/edit/' + ${author.id}}">Modifica autore</a>
 				<!-- Per l'eliminazione -->
-				<a th:href="@{'/authors/delete/' + ${author.id}}" 
+				<a class="button" th:href="@{'/authors/delete/' + ${author.id}}" 
 				   onclick="return confirm('Sei sicuro di voler eliminare questo autore?')">Elimina autore</a>
 			</div>
 		</div>

@@ -36,7 +36,7 @@ public class ReviewsController {
     @Autowired
     private CredentialsService credentialsService;
 
-    /** Form per aggiungere una nuova recensione ad un libro */
+    /** Form per aggiungere una nuova recensione - Solo utenti autenticati (controllato da Spring Security) */
     @GetMapping("/add/{bookId}")
     public String addReviewForm(@PathVariable Long bookId, Model model, Principal principal) {
         // Recupera il libro
@@ -66,7 +66,7 @@ public class ReviewsController {
         return "reviews/formAddReview";
     }
 
-    /** Salva la nuova recensione */
+    /** Salva la nuova recensione - Solo utenti autenticati (controllato da Spring Security) */
     @PostMapping("/add/{bookId}")
     public String addReview(@PathVariable Long bookId,
                            @Valid @ModelAttribute("review") Review review,
@@ -79,7 +79,7 @@ public class ReviewsController {
             return "redirect:/books";
         }
 
-        // Recupera le credenziali dell'utente (Spring Security garantisce che principal non è null)
+        // Recupera le credenziali dell'utente
         Credentials credentials = credentialsService.getCredentials(principal.getName());
 
         // Validazione personalizzata per la lunghezza dei campi
@@ -118,7 +118,7 @@ public class ReviewsController {
         return "redirect:/books/" + bookId;
     }
 
-    /** Form per modificare una recensione esistente */
+    /** Form per modificare una recensione esistente - Solo utenti autenticati (controllato da Spring Security) */
     @GetMapping("/edit/{reviewId}")
     public String editReviewForm(@PathVariable Long reviewId, Model model, Principal principal) {
         // Recupera la recensione
@@ -127,7 +127,7 @@ public class ReviewsController {
             return "redirect:/books";
         }
 
-        // Recupera le credenziali dell'utente (Spring Security garantisce che principal non è null)
+        // Recupera le credenziali dell'utente
         Credentials credentials = credentialsService.getCredentials(principal.getName());
 
         // Controlla se l'utente è il proprietario della recensione
@@ -142,7 +142,7 @@ public class ReviewsController {
         return "reviews/formEditReview";
     }
 
-    /** Salva le modifiche alla recensione */
+    /** Salva le modifiche alla recensione - Solo utenti autenticati (controllato da Spring Security) */
     @PostMapping("/edit/{reviewId}")
     public String updateReview(@PathVariable Long reviewId,
                               @Valid @ModelAttribute("review") Review updatedReview,
@@ -155,7 +155,7 @@ public class ReviewsController {
             return "redirect:/books";
         }
 
-        // Recupera le credenziali dell'utente (Spring Security garantisce che principal non è null)
+        // Recupera le credenziali dell'utente
         Credentials credentials = credentialsService.getCredentials(principal.getName());
 
         // Controlla se l'utente è il proprietario della recensione
@@ -196,7 +196,7 @@ public class ReviewsController {
         return "redirect:/books/" + existingReview.getBook().getId();
     }
 
-    /** Cancella una recensione */
+    /** Cancella una recensione - Solo utenti autenticati (controllato da Spring Security) */
     @GetMapping("/delete/{reviewId}")
     public String deleteReview(@PathVariable Long reviewId, Principal principal) {
         // Recupera la recensione
@@ -205,7 +205,7 @@ public class ReviewsController {
             return "redirect:/books";
         }
 
-        // Recupera le credenziali dell'utente (Spring Security garantisce che principal non è null)
+        // Recupera le credenziali dell'utente
         Credentials credentials = credentialsService.getCredentials(principal.getName());
         Long bookId = review.getBook().getId();
 

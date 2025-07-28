@@ -39,17 +39,7 @@ public class AuthorsController {
     public String showAuthors(Model model) {
         List<Author> authors = authorService.findAll();
         model.addAttribute("authors", authors);
-        
-        // Gestione utente autenticato/anonimo
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-            model.addAttribute("credentials", credentials);
-        } else {
-            model.addAttribute("credentials", null);
-        }
-        
+        addCredentialsToModel(model);
         return "/authors/listAuthors";
     }
 
@@ -59,47 +49,29 @@ public class AuthorsController {
         Author author = authorService.getAuthor(id);
         if (author != null) {
             model.addAttribute("author", author);
-            
-            // Gestione utente autenticato/anonimo
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-                UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-                Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-                model.addAttribute("credentials", credentials);
-            } else {
-                model.addAttribute("credentials", null);
-            }
-            
+            addCredentialsToModel(model);
             return "authors/authorDetails";
         } else {
             return "redirect:/authors";
         }
     }
 
-    /** Pagina per aggiungere un nuovo autore */
+    /** Pagina per aggiungere un nuovo autore - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/add")
     public String addAuthorForm(Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/authors";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/authors";
-        }
-
         model.addAttribute("author", new Author());
-        model.addAttribute("credentials", credentials);
+        addCredentialsToModel(model);
         return "/authors/formAddAuthor";
     }
     
-    /** Salva nuovo autore */
+    /** Salva nuovo autore - Solo ADMIN (controllato da Spring Security) */
     @PostMapping("/add")
     public String addAuthor(@Valid @ModelAttribute("author") Author author,
                           BindingResult bindingResult,
                           @RequestParam("imageFile") MultipartFile imageFile,
                           Model model) {
         if (bindingResult.hasErrors()) {
+            addCredentialsToModel(model);
             return "authors/formAddAuthor";
         }
         
@@ -110,6 +82,7 @@ public class AuthorsController {
                 author.setImage(fileName);
             } catch (IOException e) {
                 model.addAttribute("error", "Errore nel caricamento dell'immagine");
+                addCredentialsToModel(model);
                 return "authors/formAddAuthor";
             }
         }
@@ -118,47 +91,29 @@ public class AuthorsController {
         return "redirect:/authors";
     }
     
-    /** Form di modifica autore */
+    /** Form di modifica autore - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/edit/{id}")
-    public String editAuthorForm(@PathVariable Long id, Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/authors";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/authors";
-        }
-        
+    public String editAuthorForm(@PathVariable Long id, Model model) {
         Author author = authorService.getAuthor(id);
         if (author == null) {
             return "redirect:/authors";
         }
         
         model.addAttribute("author", author);
-        model.addAttribute("credentials", credentials);
+        addCredentialsToModel(model);
         return "/authors/formEditAuthor";
     }
     
-    /** Salva le modifiche all'autore */
+    /** Salva le modifiche all'autore - Solo ADMIN (controllato da Spring Security) */
     @PostMapping("/edit/{id}")
     public String updateAuthor(@PathVariable Long id,
                               @Valid @ModelAttribute("author") Author author,
                               BindingResult bindingResult,
                               @RequestParam("imageFile") MultipartFile imageFile,
-                              Model model,
-                              Principal principal) {
-        if (principal == null) {
-            return "redirect:/authors";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/authors";
-        }
+                              Model model) {
         
         if (bindingResult.hasErrors()) {
-            model.addAttribute("credentials", credentials);
+            addCredentialsToModel(model);
             return "authors/formEditAuthor";
         }
         
@@ -181,11 +136,10 @@ public class AuthorsController {
                 existingAuthor.setImage(fileName);
             } catch (IOException e) {
                 model.addAttribute("error", "Errore nel caricamento dell'immagine");
-                model.addAttribute("credentials", credentials);
+                addCredentialsToModel(model);
                 return "authors/formEditAuthor";
             }
         }
-        // Se non è stata caricata una nuova immagine, mantieni quella esistente
         
         // Salva le modifiche
         authorService.saveAuthor(existingAuthor);
@@ -194,18 +148,9 @@ public class AuthorsController {
         return "redirect:/authors/" + id;
     }
     
-    /** Elimina autore */
+    /** Elimina autore - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/delete/{id}")
-    public String deleteAuthor(@PathVariable Long id, Principal principal) {
-        if (principal == null) {
-            return "redirect:/authors";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/authors";
-        }
-        
+    public String deleteAuthor(@PathVariable Long id) {
         Author author = authorService.getAuthor(id);
         if (author != null) {
             // Prima di eliminare, rimuovi l'autore da tutti i libri associati
@@ -218,6 +163,18 @@ public class AuthorsController {
         }
         
         return "redirect:/authors";
+    }
+    
+    /** Metodo helper per aggiungere le credenziali al model */
+    private void addCredentialsToModel(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+            model.addAttribute("credentials", credentials);
+        } else {
+            model.addAttribute("credentials", null);
+        }
     }
     
     /** Metodo helper per salvare le immagini */

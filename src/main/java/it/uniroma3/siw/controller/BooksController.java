@@ -5,10 +5,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.security.Principal;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -51,17 +49,7 @@ public class BooksController {
     public String showBooks(Model model) {
         List<Book> books = bookService.findAll();
         model.addAttribute("books", books);
-        
-        // Gestione utente autenticato/anonimo
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-            model.addAttribute("credentials", credentials);
-        } else {
-            model.addAttribute("credentials", null);
-        }
-        
+        addCredentialsToModel(model);
         return "/books/listBooks";
     }
 
@@ -71,19 +59,16 @@ public class BooksController {
         Book book = bookService.findById(id);
         if (book != null) {
             model.addAttribute("book", book);
+            addCredentialsToModel(model);
             
-            // Gestione utente autenticato/anonimo
+            // Recupera la recensione dell'utente corrente per questo libro (se esiste)
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
                 UserDetails userDetails = (UserDetails) authentication.getPrincipal();
                 Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-                model.addAttribute("credentials", credentials);
-                
-                // Recupera la recensione dell'utente corrente per questo libro (se esiste)
                 Review userReview = reviewService.getUserReviewForBook(credentials.getUser(), book);
                 model.addAttribute("userReview", userReview);
             } else {
-                model.addAttribute("credentials", null);
                 model.addAttribute("userReview", null);
             }
             
@@ -93,47 +78,29 @@ public class BooksController {
         }
     }
 
-    /** Form di modifica libro */
+    /** Form di modifica libro - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/edit/{id}")
-    public String editBookForm(@PathVariable Long id, Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-        
+    public String editBookForm(@PathVariable Long id, Model model) {
         Book book = bookService.findById(id);
         if (book == null) {
             return "redirect:/books";
         }
         
         model.addAttribute("book", book);
-        model.addAttribute("credentials", credentials);
+        addCredentialsToModel(model);
         return "/books/formEditBook";
     }
     
-    /** Salva le modifiche al libro */
+    /** Salva le modifiche al libro - Solo ADMIN (controllato da Spring Security) */
     @PostMapping("/edit/{id}")
     public String updateBook(@PathVariable Long id,
                             @Valid @ModelAttribute("book") Book book,
                             BindingResult bindingResult,
                             @RequestParam("imageFile") MultipartFile imageFile,
-                            Model model,
-                            Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
+                            Model model) {
         
         if (bindingResult.hasErrors()) {
-            model.addAttribute("credentials", credentials);
+            addCredentialsToModel(model);
             return "books/formEditBook";
         }
         
@@ -154,11 +121,10 @@ public class BooksController {
                 existingBook.setImagePath(fileName);
             } catch (IOException e) {
                 model.addAttribute("error", "Errore nel caricamento dell'immagine");
-                model.addAttribute("credentials", credentials);
+                addCredentialsToModel(model);
                 return "books/formEditBook";
             }
         }
-        // Se non è stata caricata una nuova immagine, mantieni quella esistente
         
         // Salva le modifiche
         bookService.save(existingBook);
@@ -167,24 +133,15 @@ public class BooksController {
         return "redirect:/books/" + id;
     }
 
-    /** Pagina per aggiungere un nuovo libro - Step 1 */
+    /** Pagina per aggiungere un nuovo libro - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/add")
-    public String addBookForm(Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-
+    public String addBookForm(Model model) {
         model.addAttribute("book", new Book());
-        model.addAttribute("credentials", credentials);
+        addCredentialsToModel(model);
         return "/books/formAddBook";
     }
     
-    /** Salva nuovo libro e vai al Step 2 (selezione autori) */
+    /** Salva nuovo libro - Solo ADMIN (controllato da Spring Security) */
     @PostMapping("/add")
     public String addBook(@Valid @ModelAttribute("book") Book book,
                           BindingResult bindingResult,
@@ -208,22 +165,13 @@ public class BooksController {
         // Salva il libro PRIMA
         Book savedBook = this.bookService.save(book);
         
-        // Poi reindirizza alla pagina di modifica autori (Step 2)
+        // Poi reindirizza alla pagina di modifica autori
         return "redirect:/books/" + savedBook.getId() + "/authors-edit";
     }
     
-    /** Step 2: Pagina di selezione autori */
+    /** Pagina di selezione autori - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/{id}/authors-edit")
-    public String editBookAuthors(@PathVariable Long id, Model model, Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-        
+    public String editBookAuthors(@PathVariable Long id, Model model) {
         Book book = bookService.findById(id);
         if (book == null) {
             return "redirect:/books";
@@ -234,25 +182,15 @@ public class BooksController {
         
         model.addAttribute("book", book);
         model.addAttribute("availableAuthors", availableAuthors);
-        model.addAttribute("credentials", credentials);
+        addCredentialsToModel(model);
         
         return "books/editBookAuthors";
     }
 
-    /** Aggiungi un autore al libro */
+    /** Aggiungi un autore al libro - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/{bookId}/authors/add/{authorId}")
     public String addAuthorToBook(@PathVariable Long bookId, 
-                                  @PathVariable Long authorId,
-                                  Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-        
+                                  @PathVariable Long authorId) {
         Book book = bookService.findById(bookId);
         Author author = authorService.getAuthor(authorId);
         
@@ -267,20 +205,10 @@ public class BooksController {
         return "redirect:/books/" + bookId + "/authors-edit";
     }
 
-    /** Rimuovi un autore dal libro */
+    /** Rimuovi un autore dal libro - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/{bookId}/authors/remove/{authorId}")
     public String removeAuthorFromBook(@PathVariable Long bookId, 
-                                       @PathVariable Long authorId,
-                                       Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-        
+                                       @PathVariable Long authorId) {
         Book book = bookService.findById(bookId);
         Author author = authorService.getAuthor(authorId);
         
@@ -292,24 +220,51 @@ public class BooksController {
         return "redirect:/books/" + bookId + "/authors-edit";
     }
     
-    /** Elimina libro */
+    /** Elimina libro - Solo ADMIN (controllato da Spring Security) */
     @GetMapping("/delete/{id}")
-    public String deleteBook(@PathVariable Long id, Principal principal) {
-        if (principal == null) {
-            return "redirect:/books";
-        }
-        
-        Credentials credentials = credentialsService.getCredentials(principal.getName());
-        if (!credentials.getRole().equals(Credentials.ADMIN_ROLE)) {
-            return "redirect:/books";
-        }
-        
+    public String deleteBook(@PathVariable Long id) {
         Book book = bookService.findById(id);
         if (book != null) {
             bookService.deleteById(id);
         }
         
         return "redirect:/books";
+    }
+    
+    /** Pagina di ricerca libri */
+    @GetMapping("/find")
+    public String showFindBooksForm(Model model) {
+        addCredentialsToModel(model);
+        return "/books/findBooks";
+    }
+
+    /** Esegui ricerca libri */
+    @PostMapping("/find")
+    public String searchBooks(@RequestParam("title") String title, Model model) {
+        addCredentialsToModel(model);
+        
+        List<Book> searchResults = null;
+        
+        if (title != null && !title.trim().isEmpty()) {
+            // Effettua la ricerca per titolo
+            searchResults = bookService.findByTitle(title.trim());
+            model.addAttribute("searchTerm", title.trim());
+            model.addAttribute("books", searchResults);
+        }
+        
+        return "/books/findBooks";
+    }
+    
+    /** Metodo helper per aggiungere le credenziali al model */
+    private void addCredentialsToModel(Model model) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
+            model.addAttribute("credentials", credentials);
+        } else {
+            model.addAttribute("credentials", null);
+        }
     }
     
     /** Metodo helper per salvare le immagini */
@@ -330,47 +285,5 @@ public class BooksController {
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         
         return fileName;
-    }
-    
-    /** Pagina di ricerca libri */
-    @GetMapping("/find")
-    public String showFindBooksForm(Model model) {
-        // Gestione utente autenticato/anonimo
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-            model.addAttribute("credentials", credentials);
-        } else {
-            model.addAttribute("credentials", null);
-        }
-        
-        return "/books/findBooks";
-    }
-
-    /** Esegui ricerca libri - rimaniamo sulla stessa pagina */
-    @PostMapping("/find")
-    public String searchBooks(@RequestParam("title") String title, Model model) {
-        
-        // Gestione utente autenticato/anonimo
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Credentials credentials = credentialsService.getCredentials(userDetails.getUsername());
-            model.addAttribute("credentials", credentials);
-        } else {
-            model.addAttribute("credentials", null);
-        }
-        
-        List<Book> searchResults = null;
-        
-        if (title != null && !title.trim().isEmpty()) {
-            // Effettua la ricerca per titolo
-            searchResults = bookService.findByTitle(title.trim());
-            model.addAttribute("searchTerm", title.trim());
-            model.addAttribute("books", searchResults);
-        }
-        
-        return "/books/findBooks";
     }
 }
